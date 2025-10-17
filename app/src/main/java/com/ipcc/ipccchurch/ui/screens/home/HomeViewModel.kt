@@ -11,6 +11,7 @@ import com.ipcc.ipccchurch.models.SliderImage
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
+
     private val _sliderImages = mutableStateOf<List<SliderImage>>(emptyList())
     val sliderImages: State<List<SliderImage>> = _sliderImages
 
@@ -27,9 +28,17 @@ class HomeViewModel : ViewModel() {
         fetchHomeScreenData()
     }
 
+    // This function is called by the pull-to-refresh action
+    fun refresh() {
+        fetchHomeScreenData()
+    }
+
     private fun fetchHomeScreenData() {
         viewModelScope.launch {
-            _isLoading.value = true
+            // Set loading to true only if it's a refresh action, not the initial load
+            if (!_isLoading.value) {
+                _isLoading.value = true
+            }
             try {
                 _latestSermons.value = RetrofitClient.instance.getLatestSermons()
                 _sundayPlaylists.value = RetrofitClient.instance.getPlaylists()

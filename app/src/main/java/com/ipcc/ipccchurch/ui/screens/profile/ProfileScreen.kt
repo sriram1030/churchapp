@@ -3,6 +3,7 @@ package com.ipcc.ipccchurch.ui.screens.profile
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -10,12 +11,14 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.ipcc.ipccchurch.R
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onLogout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,7 +54,7 @@ fun ProfileScreen() {
         Spacer(modifier = Modifier.weight(1f))
 
         // Logout Button
-        OutlinedButton(onClick = { /* TODO: Handle Logout */ }) {
+        OutlinedButton(onClick = { onLogout() }) {
             Text("Log Out")
         }
     }
@@ -82,7 +85,11 @@ private fun ProfileOptionItem(icon: ImageVector, text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle option click */ }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(),
+                onClick = { /* Handle option click */ }
+            )
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -97,5 +104,5 @@ private fun ProfileOptionItem(icon: ImageVector, text: String) {
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen()
+    ProfileScreen(onLogout = {})
 }

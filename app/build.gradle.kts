@@ -63,9 +63,6 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.compose.material:material-icons-extended-android:1.6.5")
 
-    implementation("com.google.accompanist:accompanist-pager:0.34.0")
-    implementation("com.google.accompanist:accompanist-pager-indicators:0.34.0") // For optional indicators
-
     // For making API calls
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -74,4 +71,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     implementation("androidx.media3:media3-exoplayer:1.3.1")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+
 }
