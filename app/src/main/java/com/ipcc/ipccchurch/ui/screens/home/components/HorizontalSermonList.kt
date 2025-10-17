@@ -19,8 +19,8 @@ import com.ipcc.ipccchurch.models.Sermon
 fun HorizontalSermonList(
     title: String,
     sermons: List<Sermon>,
-    playlistId: String, // It now accepts a playlistId
-    onSermonClick: (playlistId: String, sermonId: String) -> Unit, // The onClick signature is updated
+    playlistId: String,
+    onSermonClick: (playlistId: String, sermonId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -37,8 +37,8 @@ fun HorizontalSermonList(
             items(items = sermons, key = { sermon -> sermon.id }) { sermon ->
                 SermonCard(
                     sermon = sermon,
-                    // It now passes both the playlistId and sermon.id
-                    onClick = { onSermonClick(playlistId, sermon.id) }
+                    // THE FIX IS HERE:
+                    onClick = { onSermonClick(playlistId, sermon.id.toString()) }
                 )
             }
         }
@@ -72,7 +72,8 @@ fun HorizontalPlaylistList(
                         imageUrl = playlist.imageUrl,
                         mp3Url = ""
                     ),
-                    onClick = { onPlaylistClick(playlist.id) }
+                    // AND THE FIX IS ALSO HERE:
+                    onClick = { onPlaylistClick(playlist.id.toString()) }
                 )
             }
         }

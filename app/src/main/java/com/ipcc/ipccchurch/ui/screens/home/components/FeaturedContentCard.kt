@@ -1,7 +1,11 @@
 package com.ipcc.ipccchurch.ui.screens.home.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -13,63 +17,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
-import com.ipcc.ipccchurch.R
 import com.ipcc.ipccchurch.models.SliderImage
-import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FeaturedContentCard(
     sliderItems: List<SliderImage>,
     modifier: Modifier = Modifier
 ) {
     if (sliderItems.isEmpty()) {
-        // Show a placeholder if there are no images yet
         Spacer(modifier = modifier.height(200.dp))
         return
     }
 
-    val pagerState = rememberPagerState(initialPage = 0)
-
-    LaunchedEffect(key1 = pagerState.currentPage) {
-        while (true) {
-            delay(5000)
-            val nextPage = (pagerState.currentPage + 1) % sliderItems.size
-            pagerState.animateScrollToPage(nextPage)
-        }
+    val pagerState = rememberPagerState(initialPage = 0) {
+        sliderItems.size
     }
+
+    // REMOVED: The automatic scrolling LaunchedEffect is now gone.
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
-            .padding(horizontal = 16.dp),
+            .height(200.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(
-                count = sliderItems.size,
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 val item = sliderItems[page]
-                // Use Coil's AsyncImage to load the image from the URL
                 AsyncImage(
                     model = item.imageUrl,
                     contentDescription = item.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.ic_launcher_background),
-                    error = painterResource(id = R.drawable.ic_launcher_background)
+                    contentScale = ContentScale.Crop
                 )
                 Column(
                     modifier = Modifier
@@ -83,6 +70,27 @@ fun FeaturedContentCard(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
+                    )
+                }
+            }
+
+            // ADDED: A row of dots at the bottom
+            Row(
+                Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(pagerState.pageCount) { iteration ->
+                    val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else Color.LightGray
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .size(8.dp)
                     )
                 }
             }

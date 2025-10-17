@@ -31,7 +31,7 @@ class PlayerViewModel : ViewModel() {
     private val _currentTime = mutableStateOf(0L)
     val currentTime: State<Long> = _currentTime
 
-    private val _repeatMode = mutableStateOf(Player.REPEAT_MODE_OFF)
+    private val _repeatMode = mutableStateOf(Player.REPEAT_MODE_ONE)
     val repeatMode: State<Int> = _repeatMode
 
     fun loadPlaylist(playlistId: String, initialSermonId: String, context: Context) {
@@ -44,7 +44,9 @@ class PlayerViewModel : ViewModel() {
                 }
 
                 if (sermonList.isNotEmpty()) {
-                    val initialIndex = sermonList.indexOfFirst { it.id == initialSermonId }.coerceAtLeast(0)
+                    // THIS IS THE FIX: Convert the String ID to an Int for comparison
+                    val initialIndex = sermonList.indexOfFirst { it.id == initialSermonId.toInt() }.coerceAtLeast(0)
+
                     _currentSermon.value = sermonList[initialIndex]
                     initializePlayer(context, sermonList, initialIndex)
                 }
@@ -60,6 +62,7 @@ class PlayerViewModel : ViewModel() {
             val mediaItems = sermonList.map { MediaItem.fromUri(it.mp3Url) }
             setMediaItems(mediaItems)
             seekToDefaultPosition(initialIndex)
+            repeatMode = _repeatMode.value
             prepare()
             playWhenReady = true
 
@@ -82,8 +85,9 @@ class PlayerViewModel : ViewModel() {
     fun playPause() = exoPlayer?.playWhenReady?.let { exoPlayer?.playWhenReady = !it }
     fun seekForward() = exoPlayer?.seekForward()
     fun seekBackward() = exoPlayer?.seekBack()
+    fun skipToNext() = exoPlayer?.seekToNextMediaItem()
+    fun skipToPrevious() = exoPlayer?.seekToPreviousMediaItem()
 
-    // THIS IS THE MISSING FUNCTION
     fun seekTo(position: Float) {
         exoPlayer?.let { player ->
             val seekPosition = (player.duration * position).toLong()
@@ -93,12 +97,13 @@ class PlayerViewModel : ViewModel() {
 
     fun toggleRepeatMode() {
         val currentMode = exoPlayer?.repeatMode ?: Player.REPEAT_MODE_OFF
-        _repeatMode.value = when (currentMode) {
-            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
-            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
-            else -> Player.REPEAT_MODE_OFF
+        val newMode = if (currentMode == Player.REPEAT_MODE_ONE) {
+            Player.REPEAT_MODE_OFF
+        } else {
+            Player.REPEAT_MODE_ONE
         }
-        exoPlayer?.repeatMode = _repeatMode.value
+        exoPlayer?.repeatMode = newMode
+        _repeatMode.value = newMode
     }
 
     private fun startProgressUpdates() {
