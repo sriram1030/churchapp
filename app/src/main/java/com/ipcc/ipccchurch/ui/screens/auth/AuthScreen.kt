@@ -41,9 +41,9 @@ fun AuthScreen(
                 isLoading = isLoading,
                 errorMessage = errorMessage,
                 onRegisterClick = { name, email, pass ->
-                    authViewModel.registerUser(name, email, pass, onSuccess = onRegisterSuccess)
+                    authViewModel.registerUser(name, email, pass, context, onSuccess = onRegisterSuccess)
                 },
-                onNavigateToLogin = { navController.navigate("login") }
+                onNavigateToLogin = { navController.popBackStack() }
             )
         }
     }

@@ -11,6 +11,7 @@ import com.ipcc.ipccchurch.models.Sermon
 import kotlinx.coroutines.launch
 
 class SermonListViewModel : ViewModel() {
+
     private val _sermons = mutableStateOf<List<Sermon>>(emptyList())
     val sermons: State<List<Sermon>> = _sermons
 
@@ -24,13 +25,11 @@ class SermonListViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                Log.d("SermonListViewModel", "Fetching sermons for playlist ID: $playlistId")
-                _playlistDetails.value = RetrofitClient.instance.getPlaylistDetails(playlistId)
+                // THIS IS THE CORRECTED LINE
+                _playlistDetails.value = RetrofitClient.instance.getPlaylistDetails(playlistId.toInt())
                 _sermons.value = RetrofitClient.instance.getSermonsByPlaylist(playlistId)
-                Log.d("SermonListViewModel", "Successfully fetched ${_sermons.value.size} sermons.")
             } catch (e: Exception) {
-                // This will now print a detailed error in red
-                Log.e("SermonListViewModel", "Error loading sermon list: ", e)
+                Log.e("SermonListViewModel", "API Error in SermonListViewModel: ${e.message}")
             } finally {
                 _isLoading.value = false
             }

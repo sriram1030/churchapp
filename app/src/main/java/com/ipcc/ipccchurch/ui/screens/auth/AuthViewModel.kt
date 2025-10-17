@@ -13,7 +13,6 @@ import com.ipcc.ipccchurch.models.UserRegistration
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
-
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -24,6 +23,7 @@ class AuthViewModel : ViewModel() {
         name: String,
         email: String,
         pass: String,
+        context: Context,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
@@ -32,17 +32,12 @@ class AuthViewModel : ViewModel() {
             try {
                 val user = UserRegistration(name = name, email = email, password = pass)
                 val response = RetrofitClient.instance.registerUser(user)
-
-                if (response.isSuccessful) {
-                    Log.d("AuthViewModel", "Registration successful")
-                    onSuccess()
-                } else {
-                    _errorMessage.value = "Registration failed: ${response.message()}"
-                    Log.e("AuthViewModel", "Registration error: ${response.errorBody()?.string()}")
-                }
+                SessionManager(context).saveAuthToken(response.token)
+                Log.d("AuthViewModel", "Registration successful for ${response.user.name}")
+                onSuccess()
             } catch (e: Exception) {
-                _errorMessage.value = "Network error: ${e.message}"
-                Log.e("AuthViewModel", "Network exception: ", e)
+                _errorMessage.value = "Registration failed: ${e.message}"
+                Log.e("AuthViewModel", "Registration exception: ", e)
             } finally {
                 _isLoading.value = false
             }
@@ -61,10 +56,8 @@ class AuthViewModel : ViewModel() {
             try {
                 val user = UserLogin(email = email, password = pass)
                 val response = RetrofitClient.instance.loginUser(user)
-
                 SessionManager(context).saveAuthToken(response.token)
-
-                Log.d("AuthViewModel", "Login successful for ${response.name}")
+                Log.d("AuthViewModel", "Login successful for ${response.user.name}")
                 onSuccess()
             } catch (e: Exception) {
                 _errorMessage.value = "Login failed: ${e.message}"

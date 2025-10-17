@@ -1,20 +1,13 @@
 package com.ipcc.ipccchurch
 
-import com.ipcc.ipccchurch.models.LoginResponse
-import com.ipcc.ipccchurch.models.Playlist
-import com.ipcc.ipccchurch.models.Sermon
-import com.ipcc.ipccchurch.models.SliderImage
-import com.ipcc.ipccchurch.models.UserLogin
-import com.ipcc.ipccchurch.models.UserRegistration
+import com.ipcc.ipccchurch.models.*
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ApiService {
+    // Content Endpoints
     @GET("api/playlists.php")
     suspend fun getPlaylists(): List<Playlist>
 
@@ -30,15 +23,31 @@ interface ApiService {
     @GET("api/latest_sermons.php")
     suspend fun getLatestSermons(): List<Sermon>
 
-    // In ApiService.kt
     @GET("api/playlist_detail.php")
-    suspend fun getPlaylistDetails(@Query("id") playlistId: String): Playlist
+    suspend fun getPlaylistDetails(@Query("id") playlistId: Int): Playlist
 
+    // Authentication & User Endpoints
     @POST("api/register.php")
-    suspend fun registerUser(@Body user: UserRegistration): Response<Unit>
+    suspend fun registerUser(@Body user: UserRegistration): AuthResponse
 
     @POST("api/login.php")
-    suspend fun loginUser(@Body user: UserLogin): LoginResponse
+    suspend fun loginUser(@Body user: UserLogin): AuthResponse
+
+    @GET("api/get_profile.php")
+    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfile
+
+    // Simplified Update Endpoints
+    @POST("api/update_name.php")
+    suspend fun updateName(
+        @Header("Authorization") token: String,
+        @Body request: UpdateNameRequest
+    ): UserProfile
+
+    @POST("api/change_password.php")
+    suspend fun changePassword(
+        @Header("Authorization") token: String,
+        @Body request: ChangePasswordRequest
+    ): Response<Unit>
 }
 
 object RetrofitClient {
