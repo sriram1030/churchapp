@@ -2,6 +2,7 @@ package com.ipcc.ipccchurch
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -39,29 +40,49 @@ fun MainApp() {
     val sessionManager = remember { SessionManager(context) }
 
     val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Events, Screen.Profile)
-    val showScaffold = navItems.any { it.route == currentDestination?.route }
+    val mainScreenRoutes = navItems.map { it.route }
+    val isMainScreen = currentDestination?.route in mainScreenRoutes
+
+    val showBottomBar = isMainScreen
+    val showTopBar = currentDestination?.route !in listOf("login", "register", "splash")
 
     Scaffold(
         topBar = {
-            if (showScaffold) {
+            if (showTopBar) {
                 TopAppBar(
-                    title = { Text("IPCC Church") },
+                    title = {
+                        val title = when {
+                            currentDestination?.route?.startsWith("sermon_list") == true -> "Sermon Series"
+                            currentDestination?.route?.startsWith("player") == true -> "Now Playing"
+                            currentDestination?.route == "settings" -> "Settings"
+                            else -> "IPCC Church"
+                        }
+                        Text(title)
+                    },
                     navigationIcon = {
-                        IconButton(onClick = { /* TODO: Drawer logic */ }) {
-                            Icon(Icons.Default.Menu, "Menu")
+                        if (!isMainScreen) {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                            }
+                        } else {
+                            IconButton(onClick = { /* TODO: Drawer */ }) {
+                                Icon(Icons.Default.Menu, "Menu")
+                            }
                         }
                     },
                     actions = {
                         if (currentDestination?.route == Screen.Sermons.route) {
                             IconButton(onClick = { /* Search */ }) { Icon(Icons.Default.Search, "Search") }
                         }
-                        IconButton(onClick = { navController.navigate(Screen.Profile.route) }) { Icon(Icons.Default.Person, "Profile") }
+                        if (isMainScreen) {
+                            IconButton(onClick = { navController.navigate(Screen.Profile.route) }) { Icon(Icons.Default.Person, "Profile") }
+                        }
                     }
                 )
             }
         },
         bottomBar = {
-            if (showScaffold) {
+            if (showBottomBar) {
                 NavigationBar {
                     navItems.forEach { screen ->
                         NavigationBarItem(
@@ -91,14 +112,12 @@ fun MainApp() {
                     onNavigateToMain = { navController.navigate(Screen.Home.route) { popUpTo("splash") { inclusive = true } } }
                 )
             }
-
             composable("auth") {
                 AuthScreen(
                     onLoginSuccess = { navController.navigate(Screen.Home.route) { popUpTo("auth") { inclusive = true } } },
                     onRegisterSuccess = { navController.navigate(Screen.Home.route) { popUpTo("auth") { inclusive = true } } }
                 )
             }
-
             composable(Screen.Home.route) {
                 HomeScreen(
                     onSermonClick = { playlistId, sermonId -> navController.navigate("player/$playlistId/$sermonId") },
