@@ -8,6 +8,9 @@ import retrofit2.http.*
 
 interface ApiService {
     // Content Endpoints
+
+    @GET("api/events.php")
+    suspend fun getEvents(): List<Event>
     @GET("api/playlists.php")
     suspend fun getPlaylists(): List<Playlist>
 
