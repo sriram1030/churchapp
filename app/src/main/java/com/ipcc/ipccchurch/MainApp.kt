@@ -143,10 +143,12 @@ fun MainApp() {
                     onRegisterSuccess = { navController.navigate(Screen.Home.route) { popUpTo("auth") { inclusive = true } } }
                 )
             }
+            // In MainApp.kt, inside the NavHost
             composable(Screen.Home.route) {
                 HomeScreen(
                     onSermonClick = { playlistId, sermonId -> navController.navigate("player/$playlistId/$sermonId") },
-                    onPlaylistClick = { playlistId -> navController.navigate("sermon_list/$playlistId") }
+                    onPlaylistClick = { playlistId -> navController.navigate("sermon_list/$playlistId") },
+                    sharedPlayerViewModel = sharedPlayerViewModel // Pass the shared instance here
                 )
             }
             composable(Screen.Sermons.route) {

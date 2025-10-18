@@ -21,18 +21,21 @@ class SharedPlayerViewModel : ViewModel() {
     private var mediaController: MediaController? = null
     private var progressJob: Job? = null
 
+    // Sermon-specific state
     private val _currentSermon = mutableStateOf<Sermon?>(null)
     val currentSermon: State<Sermon?> = _currentSermon
 
+    // Radio-specific state
+    private val _isRadioPlaying = mutableStateOf(false)
+    val isRadioPlaying: State<Boolean> = _isRadioPlaying
+
+    // General player state
     private val _isPlaying = mutableStateOf(false)
     val isPlaying: State<Boolean> = _isPlaying
-
     private val _currentTime = mutableStateOf(0L)
     val currentTime: State<Long> = _currentTime
-
     private val _totalDuration = mutableStateOf(0L)
     val totalDuration: State<Long> = _totalDuration
-
     private val _repeatMode = mutableStateOf(Player.REPEAT_MODE_OFF)
     val repeatMode: State<Int> = _repeatMode
 
@@ -47,6 +50,7 @@ class SharedPlayerViewModel : ViewModel() {
     }
 
     fun playSermonList(playlistId: String, initialSermonId: String) {
+        _isRadioPlaying.value = false // Stop radio tracking
         viewModelScope.launch {
             try {
                 val sermonList = if (playlistId == "latest") {
@@ -69,6 +73,33 @@ class SharedPlayerViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("SharedPlayerViewModel", "Error playing sermon list", e)
             }
+        }
+    }
+
+    fun playRadio() {
+        if (_isRadioPlaying.value && isPlaying.value) {
+            stopAndClearPlayer()
+            return
+        }
+
+        stopAndClearPlayer()
+        _isRadioPlaying.value = true
+
+        val radioUrl = "https://streams.radio.co/s790fe269d/listen"
+        val radioMetadata = androidx.media3.common.MediaMetadata.Builder()
+            .setTitle("IPCC Internet Radio")
+            .setArtist("Live Broadcast")
+            .build()
+
+        val mediaItem = MediaItem.Builder()
+            .setUri(radioUrl)
+            .setMediaMetadata(radioMetadata)
+            .build()
+
+        mediaController?.run {
+            setMediaItem(mediaItem)
+            prepare()
+            play()
         }
     }
 
@@ -107,13 +138,26 @@ class SharedPlayerViewModel : ViewModel() {
     }
 
     fun playPause() = mediaController?.playWhenReady?.let { mediaController?.playWhenReady = !it }
-    fun skipToNext() = mediaController?.seekToNextMediaItem()
-    fun skipToPrevious() = mediaController?.seekToPreviousMediaItem()
 
     fun stopAndClearPlayer() {
         mediaController?.stop()
         mediaController?.clearMediaItems()
-        _currentSermon.value = null // This hides the mini-player
+        _currentSermon.value = null
+        _isRadioPlaying.value = false
+    }
+
+    fun skipToNext() = mediaController?.seekToNextMediaItem()
+    fun skipToPrevious() = mediaController?.seekToPreviousMediaItem()
+
+    fun toggleRepeatMode() {
+        val currentMode = mediaController?.repeatMode ?: Player.REPEAT_MODE_OFF
+        val newMode = if (currentMode == Player.REPEAT_MODE_ONE) {
+            Player.REPEAT_MODE_OFF
+        } else {
+            Player.REPEAT_MODE_ONE
+        }
+        mediaController?.repeatMode = newMode
+        _repeatMode.value = newMode
     }
 
     private fun startProgressUpdates() {

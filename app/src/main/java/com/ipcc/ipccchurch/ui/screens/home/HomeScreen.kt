@@ -1,5 +1,6 @@
 package com.ipcc.ipccchurch.ui.screens.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,22 +19,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ipcc.ipccchurch.SharedPlayerViewModel
 import com.ipcc.ipccchurch.ui.screens.home.components.FeaturedContentCard
 import com.ipcc.ipccchurch.ui.screens.home.components.HorizontalPlaylistList
 import com.ipcc.ipccchurch.ui.screens.home.components.HorizontalSermonList
 import com.ipcc.ipccchurch.ui.screens.home.components.RadioPlayerCard
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onSermonClick: (playlistId: String, sermonId: String) -> Unit,
     onPlaylistClick: (playlistId: String) -> Unit,
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    sharedPlayerViewModel: SharedPlayerViewModel
 ) {
     val sliderImages by homeViewModel.sliderImages
     val latestSermons by homeViewModel.latestSermons
     val sundayPlaylists by homeViewModel.sundayPlaylists
     val isLoading by homeViewModel.isLoading
+    val isRadioPlaying by sharedPlayerViewModel.isRadioPlaying
 
     val pullToRefreshState = rememberPullToRefreshState()
 
@@ -50,31 +54,46 @@ fun HomeScreen(
                 contentPadding = PaddingValues(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                item {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        FeaturedContentCard(sliderItems = sliderImages)
+                // 1. Image Slider (Carousel)
+                if (sliderImages.isNotEmpty()) {
+                    item {
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            FeaturedContentCard(sliderItems = sliderImages)
+                        }
                     }
                 }
+
+                // 2. Latest Sermons
+                if (latestSermons.isNotEmpty()) {
+                    item {
+                        HorizontalSermonList(
+                            title = "Latest Sermons",
+                            sermons = latestSermons,
+                            playlistId = "latest",
+                            onSermonClick = onSermonClick
+                        )
+                    }
+                }
+
+                // 3. Sermon Series (Playlists)
+                if (sundayPlaylists.isNotEmpty()) {
+                    item {
+                        HorizontalPlaylistList(
+                            title = "Sermon Series",
+                            playlists = sundayPlaylists,
+                            onPlaylistClick = onPlaylistClick
+                        )
+                    }
+                }
+
+                // 4. Internet Radio
                 item {
-                    HorizontalSermonList(
-                        title = "Latest Sermons",
-                        sermons = latestSermons,
-                        playlistId = "latest",
-                        onSermonClick = { playlistId, sermonId ->
-                            onSermonClick(playlistId, sermonId.toString())
-                        }
+                    RadioPlayerCard(
+                        isRadioPlaying = isRadioPlaying,
+                        onPlayClick = { sharedPlayerViewModel.playRadio() },
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                item {
-                    HorizontalPlaylistList(
-                        title = "Sunday Sermons",
-                        playlists = sundayPlaylists,
-                        onPlaylistClick = { playlistId ->
-                            onPlaylistClick(playlistId.toString())
-                        }
-                    )
-                }
-                item { RadioPlayerCard() }
             }
         }
 
