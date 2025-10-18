@@ -1,5 +1,7 @@
 package com.ipcc.ipccchurch
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -8,16 +10,19 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ipcc.ipccchurch.ui.MiniPlayer
 import com.ipcc.ipccchurch.ui.Screen
 import com.ipcc.ipccchurch.ui.screens.auth.AuthScreen
 import com.ipcc.ipccchurch.ui.screens.events.EventsScreen
@@ -33,22 +38,26 @@ import kotlinx.coroutines.runBlocking
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp() {
+    val sharedPlayerViewModel: SharedPlayerViewModel = viewModel()
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
 
+    LaunchedEffect(Unit) {
+        sharedPlayerViewModel.initializeController(context)
+    }
+
     val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Events, Screen.Profile)
     val mainScreenRoutes = navItems.map { it.route }
-    val isMainScreen = currentDestination?.route in mainScreenRoutes
+    val isMainScreen = mainScreenRoutes.any { route -> currentDestination?.hierarchy?.any { it.route == route } == true }
 
-    val showBottomBar = isMainScreen
-    val showTopBar = currentDestination?.route !in listOf("login", "register", "splash")
+    val showScaffold = currentDestination?.route !in listOf("login", "register", "splash")
 
     Scaffold(
         topBar = {
-            if (showTopBar) {
+            if (showScaffold) {
                 TopAppBar(
                     title = {
                         val title = when {
@@ -82,20 +91,33 @@ fun MainApp() {
             }
         },
         bottomBar = {
-            if (showBottomBar) {
-                NavigationBar {
-                    navItems.forEach { screen ->
-                        NavigationBarItem(
-                            icon = { Icon(screen.icon, null) },
-                            label = { Text(screen.label) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id)
-                                    launchSingleTop = true
-                                }
+            if (showScaffold) {
+                // The bottom bar is a Column holding both the player and nav bar
+                Column {
+                    MiniPlayer(
+                        sharedPlayerViewModel = sharedPlayerViewModel,
+                        onNavigateToPlayer = {
+                            val currentSermon = sharedPlayerViewModel.currentSermon.value
+                            if (currentSermon != null) {
+                                navController.navigate("player/latest/${currentSermon.id}")
                             }
-                        )
+                        }
+                    )
+
+                    NavigationBar {
+                        navItems.forEach { screen ->
+                            NavigationBarItem(
+                                icon = { Icon(screen.icon, null) },
+                                label = { Text(screen.label) },
+                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id)
+                                        launchSingleTop = true
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -148,7 +170,7 @@ fun MainApp() {
             composable("player/{playlistId}/{sermonId}") { backStackEntry ->
                 val playlistId = backStackEntry.arguments?.getString("playlistId")
                 val sermonId = backStackEntry.arguments?.getString("sermonId")
-                PlayerScreen(playlistId, sermonId, navController)
+                PlayerScreen(playlistId, sermonId, navController, sharedPlayerViewModel)
             }
         }
     }

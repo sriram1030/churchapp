@@ -78,5 +78,7 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
 
+    implementation("androidx.media3:media3-session:1.3.1")
+
 
 }

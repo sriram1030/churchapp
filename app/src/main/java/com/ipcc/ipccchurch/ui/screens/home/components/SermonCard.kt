@@ -12,12 +12,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.ipcc.ipccchurch.R
 import com.ipcc.ipccchurch.models.Sermon
 
 @Composable
@@ -32,35 +30,22 @@ fun SermonCard(
             .height(180.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(bounded = true), // Explicitly provide the ripple
-                onClick = { onClick() }
+                indication = rememberRipple(bounded = true),
+                onClick = onClick
             ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            // Use Coil's AsyncImage to load the image from the URL
             AsyncImage(
                 model = sermon.imageUrl,
                 contentDescription = sermon.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.ic_launcher_background),
-                error = painterResource(id = R.drawable.ic_launcher_background)
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+                contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = sermon.title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    maxLines = 1
-                )
+                Text(text = sermon.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Pas.Samuvel", // <-- Hardcoded text
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Text(text = "Pas.Samuvel", fontSize = 14.sp, color = Color.Gray)
             }
         }
     }
