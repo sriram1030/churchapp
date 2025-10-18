@@ -10,26 +10,34 @@ import kotlinx.coroutines.launch
 
 class EventsViewModel : ViewModel() {
 
-    private val _events = mutableStateOf<List<Event>>(emptyList())
-    val events: State<List<Event>> = _events
+    private val _churchEvents = mutableStateOf<List<Event>>(emptyList())
+    val churchEvents: State<List<Event>> = _churchEvents
+
+    private val _birthdays = mutableStateOf<List<Event>>(emptyList())
+    val birthdays: State<List<Event>> = _birthdays
+
+    private val _weddings = mutableStateOf<List<Event>>(emptyList())
+    val weddings: State<List<Event>> = _weddings
 
     private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
 
     init {
-        loadEvents()
+        loadAllEvents()
     }
 
     // NEW: Public function to trigger a refresh
     fun refresh() {
-        loadEvents()
+        loadAllEvents()
     }
 
-    private fun loadEvents() {
+    private fun loadAllEvents() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _events.value = RetrofitClient.instance.getEvents()
+                _churchEvents.value = RetrofitClient.instance.getEvents()
+                _birthdays.value = RetrofitClient.instance.getEvents("birthday")
+                _weddings.value = RetrofitClient.instance.getEvents("wedding")
             } catch (e: Exception) {
                 println("API Error in EventsViewModel: ${e.message}")
             } finally {

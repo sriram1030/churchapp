@@ -49,3 +49,15 @@ fun ShimmerHorizontalList(title: String? = null) {
         }
     }
 }
+
+// THIS IS THE MISSING COMPONENT
+@Composable
+fun ShimmerListItem() {
+    Spacer(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp) // Approximate height of an EventCard
+            .clip(RoundedCornerShape(8.dp))
+            .shimmerEffect()
+    )
+}

@@ -10,7 +10,7 @@ interface ApiService {
     // Content Endpoints
 
     @GET("api/events.php")
-    suspend fun getEvents(): List<Event>
+    suspend fun getEvents(@Query("type") type: String? = null): List<Event>
     @GET("api/playlists.php")
     suspend fun getPlaylists(): List<Playlist>
 
