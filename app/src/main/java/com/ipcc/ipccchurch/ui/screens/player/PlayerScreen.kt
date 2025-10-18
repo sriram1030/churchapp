@@ -106,7 +106,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
                         "Play/Pause",
-                        modifier = Modifier.size(72.dp)
+                        modifier = Modifier.size(100.dp)
                     )
                 }
                 IconButton(onClick = { sharedPlayerViewModel.skipToNext() }) {

@@ -1,13 +1,11 @@
 package com.ipcc.ipccchurch.ui.screens.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -21,11 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ipcc.ipccchurch.SharedPlayerViewModel
 import com.ipcc.ipccchurch.ui.screens.home.components.FeaturedContentCard
+import com.ipcc.ipccchurch.ui.screens.home.components.HomeScreenSkeleton
 import com.ipcc.ipccchurch.ui.screens.home.components.HorizontalPlaylistList
 import com.ipcc.ipccchurch.ui.screens.home.components.HorizontalSermonList
 import com.ipcc.ipccchurch.ui.screens.home.components.RadioPlayerCard
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onSermonClick: (playlistId: String, sermonId: String) -> Unit,
@@ -33,6 +32,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     sharedPlayerViewModel: SharedPlayerViewModel
 ) {
+    // We only get the single isLoading flag now
     val sliderImages by homeViewModel.sliderImages
     val latestSermons by homeViewModel.latestSermons
     val sundayPlaylists by homeViewModel.sundayPlaylists
@@ -46,15 +46,15 @@ fun HomeScreen(
             .fillMaxSize()
             .nestedScroll(pullToRefreshState.nestedScrollConnection)
     ) {
+        // Show the skeleton only on the initial load
         if (isLoading && sliderImages.isEmpty()) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            HomeScreenSkeleton()
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // 1. Image Slider (Carousel)
                 if (sliderImages.isNotEmpty()) {
                     item {
                         Box(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -62,8 +62,6 @@ fun HomeScreen(
                         }
                     }
                 }
-
-                // 2. Latest Sermons
                 if (latestSermons.isNotEmpty()) {
                     item {
                         HorizontalSermonList(
@@ -74,8 +72,6 @@ fun HomeScreen(
                         )
                     }
                 }
-
-                // 3. Sermon Series (Playlists)
                 if (sundayPlaylists.isNotEmpty()) {
                     item {
                         HorizontalPlaylistList(
@@ -86,23 +82,17 @@ fun HomeScreen(
                     }
                 }
 
-                // 4. Internet Radio
-                item {
-                    RadioPlayerCard(
-                        isRadioPlaying = isRadioPlaying,
-                        onPlayClick = { sharedPlayerViewModel.playRadio() },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
             }
         }
 
+        // This handles the pull-to-refresh action
         if (pullToRefreshState.isRefreshing) {
             LaunchedEffect(true) {
                 homeViewModel.refresh()
             }
         }
 
+        // This hides the refresh indicator when loading is finished
         LaunchedEffect(isLoading) {
             if (!isLoading) {
                 pullToRefreshState.endRefresh()

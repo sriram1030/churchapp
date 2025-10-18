@@ -1,35 +1,60 @@
 package com.ipcc.ipccchurch.ui.screens.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.ipcc.ipccchurch.R
 
 @Composable
 fun AuthScaffold(
-    content: @Composable () -> Unit
+    title: String,
+    footerText: String,
+    footerLinkText: String,
+    onFooterLinkClick: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    // THE FIX IS HERE: The list of colors is now defined inside the Composable.
-    val gradientColors = listOf(
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-        Color.Transparent
-    )
-
+    // THE FIX: Use a Box to safely align content to the top and bottom.
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = gradientColors,
-                    startY = 0.0f,
-                    endY = Float.POSITIVE_INFINITY
-                )
-            )
+            .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
-        content()
+        // --- Top & Middle Content (aligned to the top) ---
+        Column(
+            modifier = Modifier.align(Alignment.TopCenter),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Image(
+                painter = painterResource(id = R.drawable.church_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = title, style = MaterialTheme.typography.headlineLarge)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // This is where the TextFields and Buttons go
+            content()
+        }
+
+        // --- Bottom Footer (aligned to the bottom) ---
+        Row(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(footerText, style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = onFooterLinkClick) {
+                Text(footerLinkText, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }

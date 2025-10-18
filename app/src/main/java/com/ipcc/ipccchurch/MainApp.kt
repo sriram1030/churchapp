@@ -1,7 +1,6 @@
 package com.ipcc.ipccchurch
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +25,7 @@ import com.ipcc.ipccchurch.ui.screens.events.EventsScreen
 import com.ipcc.ipccchurch.ui.screens.home.HomeScreen
 import com.ipcc.ipccchurch.ui.screens.player.PlayerScreen
 import com.ipcc.ipccchurch.ui.screens.profile.ProfileScreen
+import com.ipcc.ipccchurch.ui.screens.radio.RadioScreen
 import com.ipcc.ipccchurch.ui.screens.sermonlist.SermonListScreen
 import com.ipcc.ipccchurch.ui.screens.sermons.SermonsScreen
 import com.ipcc.ipccchurch.ui.screens.settings.SettingsScreen
@@ -46,10 +46,9 @@ fun MainApp() {
         sharedPlayerViewModel.initializeController(context)
     }
 
-    val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Events, Screen.Profile)
+    val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Radio, Screen.Events, Screen.Profile)
     val mainScreenRoutes = navItems.map { it.route }
 
-    // --- Visibility Logic ---
     val isMainScreen = mainScreenRoutes.any { route -> currentDestination?.hierarchy?.any { it.route == route } == true }
     val isPlayerScreen = currentDestination?.route?.startsWith("player") == true
 
@@ -83,7 +82,7 @@ fun MainApp() {
                     },
                     actions = {
                         if (currentDestination?.route == Screen.Sermons.route) {
-                            IconButton(onClick = { /* Search */ }) { Icon(Icons.Default.Search, "Search") }
+                            IconButton(onClick = { /* TODO: Search */ }) { Icon(Icons.Default.Search, "Search") }
                         }
                         if (isMainScreen) {
                             IconButton(onClick = { navController.navigate(Screen.Profile.route) }) { Icon(Icons.Default.Person, "Profile") }
@@ -93,7 +92,6 @@ fun MainApp() {
             }
         },
         bottomBar = {
-            // The bottom bar is a Column that conditionally shows the MiniPlayer and NavigationBar
             Column {
                 if (showMiniPlayer) {
                     MiniPlayer(
@@ -143,12 +141,11 @@ fun MainApp() {
                     onRegisterSuccess = { navController.navigate(Screen.Home.route) { popUpTo("auth") { inclusive = true } } }
                 )
             }
-            // In MainApp.kt, inside the NavHost
             composable(Screen.Home.route) {
                 HomeScreen(
                     onSermonClick = { playlistId, sermonId -> navController.navigate("player/$playlistId/$sermonId") },
                     onPlaylistClick = { playlistId -> navController.navigate("sermon_list/$playlistId") },
-                    sharedPlayerViewModel = sharedPlayerViewModel // Pass the shared instance here
+                    sharedPlayerViewModel = sharedPlayerViewModel
                 )
             }
             composable(Screen.Sermons.route) {
@@ -156,6 +153,9 @@ fun MainApp() {
                     onSermonClick = { playlistId, sermonId -> navController.navigate("player/$playlistId/$sermonId") },
                     onPlaylistClick = { playlistId -> navController.navigate("sermon_list/$playlistId") }
                 )
+            }
+            composable(Screen.Radio.route) {
+                RadioScreen(sharedPlayerViewModel = sharedPlayerViewModel)
             }
             composable(Screen.Events.route) { EventsScreen() }
             composable(Screen.Profile.route) {
