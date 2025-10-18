@@ -32,7 +32,6 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     sharedPlayerViewModel: SharedPlayerViewModel
 ) {
-    // We only get the single isLoading flag now
     val sliderImages by homeViewModel.sliderImages
     val latestSermons by homeViewModel.latestSermons
     val sundayPlaylists by homeViewModel.sundayPlaylists
@@ -46,7 +45,6 @@ fun HomeScreen(
             .fillMaxSize()
             .nestedScroll(pullToRefreshState.nestedScrollConnection)
     ) {
-        // Show the skeleton only on the initial load
         if (isLoading && sliderImages.isEmpty()) {
             HomeScreenSkeleton()
         } else {
@@ -68,7 +66,7 @@ fun HomeScreen(
                             title = "Latest Sermons",
                             sermons = latestSermons,
                             playlistId = "latest",
-                            onSermonClick = onSermonClick
+                            onSermonClick = onSermonClick // Corrected line
                         )
                     }
                 }
@@ -81,18 +79,22 @@ fun HomeScreen(
                         )
                     }
                 }
-
+                item {
+                    RadioPlayerCard(
+                        isRadioPlaying = isRadioPlaying,
+                        onPlayClick = { sharedPlayerViewModel.playRadio() },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
             }
         }
 
-        // This handles the pull-to-refresh action
         if (pullToRefreshState.isRefreshing) {
             LaunchedEffect(true) {
                 homeViewModel.refresh()
             }
         }
 
-        // This hides the refresh indicator when loading is finished
         LaunchedEffect(isLoading) {
             if (!isLoading) {
                 pullToRefreshState.endRefresh()

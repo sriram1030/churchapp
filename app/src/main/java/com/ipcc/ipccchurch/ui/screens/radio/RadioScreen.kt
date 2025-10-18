@@ -1,6 +1,10 @@
 package com.ipcc.ipccchurch.ui.screens.radio
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ipcc.ipccchurch.R
 import com.ipcc.ipccchurch.SharedPlayerViewModel
@@ -27,6 +32,7 @@ fun RadioScreen(
 ) {
     val isRadioPlaying by sharedPlayerViewModel.isRadioPlaying
     val isOverallPlaying by sharedPlayerViewModel.isPlaying
+    val radioMetadata by sharedPlayerViewModel.radioMetadata
 
     Column(
         modifier = Modifier
@@ -44,7 +50,37 @@ fun RadioScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("IPCC Internet Radio", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        // Animated text for the song title
+        AnimatedContent(
+            targetState = radioMetadata.title,
+            label = "TitleAnimation",
+            transitionSpec = {
+                slideInVertically { height -> height } togetherWith slideOutVertically { height -> -height }
+            }
+        ) { title ->
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // Animated text for the artist
+        AnimatedContent(
+            targetState = radioMetadata.artist,
+            label = "ArtistAnimation",
+            transitionSpec = {
+                slideInVertically { height -> height } togetherWith slideOutVertically { height -> -height }
+            }
+        ) { artist ->
+            Text(
+                text = artist,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        }
 
         // "LIVE" indicator
         AnimatedVisibility(visible = isRadioPlaying && isOverallPlaying) {
@@ -60,7 +96,6 @@ fun RadioScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Large Play/Pause Button
         IconButton(
             onClick = { sharedPlayerViewModel.playRadio() },
             modifier = Modifier.size(80.dp)
