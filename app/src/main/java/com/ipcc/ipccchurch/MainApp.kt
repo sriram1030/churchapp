@@ -9,10 +9,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,18 +48,23 @@ fun MainApp() {
 
     val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Events, Screen.Profile)
     val mainScreenRoutes = navItems.map { it.route }
-    val isMainScreen = mainScreenRoutes.any { route -> currentDestination?.hierarchy?.any { it.route == route } == true }
 
-    val showScaffold = currentDestination?.route !in listOf("login", "register", "splash")
+    // --- Visibility Logic ---
+    val isMainScreen = mainScreenRoutes.any { route -> currentDestination?.hierarchy?.any { it.route == route } == true }
+    val isPlayerScreen = currentDestination?.route?.startsWith("player") == true
+
+    val showTopBar = currentDestination?.route !in listOf("login", "register", "splash")
+    val showBottomNav = isMainScreen
+    val showMiniPlayer = sharedPlayerViewModel.currentSermon.value != null && !isPlayerScreen
 
     Scaffold(
         topBar = {
-            if (showScaffold) {
+            if (showTopBar) {
                 TopAppBar(
                     title = {
                         val title = when {
                             currentDestination?.route?.startsWith("sermon_list") == true -> "Sermon Series"
-                            currentDestination?.route?.startsWith("player") == true -> "Now Playing"
+                            isPlayerScreen -> "Now Playing"
                             currentDestination?.route == "settings" -> "Settings"
                             else -> "IPCC Church"
                         }
@@ -91,19 +93,20 @@ fun MainApp() {
             }
         },
         bottomBar = {
-            if (showScaffold) {
-                // The bottom bar is a Column holding both the player and nav bar
-                Column {
+            // The bottom bar is a Column that conditionally shows the MiniPlayer and NavigationBar
+            Column {
+                if (showMiniPlayer) {
                     MiniPlayer(
                         sharedPlayerViewModel = sharedPlayerViewModel,
                         onNavigateToPlayer = {
-                            val currentSermon = sharedPlayerViewModel.currentSermon.value
-                            if (currentSermon != null) {
-                                navController.navigate("player/latest/${currentSermon.id}")
+                            val sermon = sharedPlayerViewModel.currentSermon.value
+                            if (sermon != null) {
+                                navController.navigate("player/latest/${sermon.id}")
                             }
                         }
                     )
-
+                }
+                if (showBottomNav) {
                     NavigationBar {
                         navItems.forEach { screen ->
                             NavigationBarItem(
