@@ -49,6 +49,7 @@ fun MainApp() {
     val navItems = listOf(Screen.Home, Screen.Sermons, Screen.Radio, Screen.Events, Screen.Profile)
     val mainScreenRoutes = navItems.map { it.route }
 
+    // --- Visibility Logic ---
     val isMainScreen = mainScreenRoutes.any { route -> currentDestination?.hierarchy?.any { it.route == route } == true }
     val isPlayerScreen = currentDestination?.route?.startsWith("player") == true
 
@@ -75,7 +76,7 @@ fun MainApp() {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                             }
                         } else {
-                            IconButton(onClick = { /* TODO: Drawer */ }) {
+                            IconButton(onClick = { /* TODO: Drawer logic */ }) {
                                 Icon(Icons.Default.Menu, "Menu")
                             }
                         }
@@ -92,6 +93,7 @@ fun MainApp() {
             }
         },
         bottomBar = {
+            // The bottom bar is a Column that conditionally shows the MiniPlayer and NavigationBar
             Column {
                 if (showMiniPlayer) {
                     MiniPlayer(
@@ -99,6 +101,8 @@ fun MainApp() {
                         onNavigateToPlayer = {
                             val sermon = sharedPlayerViewModel.currentSermon.value
                             if (sermon != null) {
+                                // This needs a playlistId, which should be stored in the ViewModel.
+                                // For now, we'll hardcode 'latest' as a fallback.
                                 navController.navigate("player/latest/${sermon.id}")
                             }
                         }
